@@ -9,6 +9,19 @@ pub struct TicketStore {
     counter: u64,
 }
 
+impl std::ops::IndexMut<&TicketId> for TicketStore {
+    fn index_mut(&mut self, index: &TicketId) -> &mut Self::Output {
+        let TicketId(id) = index;
+        &mut self.tickets[*id as usize]
+    }
+}
+
+impl std::ops::IndexMut<TicketId> for TicketStore {
+    fn index_mut(&mut self, index: TicketId) -> &mut Self::Output {
+        Self::index_mut(self, &index)
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct TicketId(u64);
 

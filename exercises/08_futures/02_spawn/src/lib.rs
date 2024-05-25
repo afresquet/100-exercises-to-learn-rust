@@ -1,10 +1,26 @@
+use anyhow::Result;
 use tokio::net::TcpListener;
 
 // TODO: write an echo server that accepts TCP connections on two listeners, concurrently.
 //  Multiple connections (on the same listeners) should be processed concurrently.
 //  The received data should be echoed back to the client.
 pub async fn echoes(first: TcpListener, second: TcpListener) -> Result<(), anyhow::Error> {
-    todo!()
+    let first = tokio::spawn(echo(first));
+    let second = tokio::spawn(echo(second));
+    let (first, second) = tokio::join!(first, second);
+    first??;
+    second??;
+    Ok(())
+}
+
+async fn echo(tcp_listener: TcpListener) -> Result<()> {
+    loop {
+        let (mut tcp_stream, _) = tcp_listener.accept().await?;
+        tokio::spawn(async move {
+            let (mut reader, mut writer) = tcp_stream.split();
+            tokio::io::copy(&mut reader, &mut writer).await.unwrap();
+        });
+    }
 }
 
 #[cfg(test)]
